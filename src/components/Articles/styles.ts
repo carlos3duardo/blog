@@ -36,7 +36,7 @@ export const FilterContainer = styled.div`
 
 export const ArticlesList = styled.ul`
   list-style: none;
-  margin: 3rem 0 0 0;
+  margin: 3rem 0;
   padding: 0;
 
   display: grid;
@@ -46,8 +46,15 @@ export const ArticlesList = styled.ul`
 
 export const Article = styled.li`
   background: ${(props) => props.theme.basePost};
+  border: 2px solid transparent;
   border-radius: 10px;
   padding: 2rem;
+
+  transition: border 0.2s;
+
+  a {
+    text-decoration: none;
+  }
 
   header {
     display: flex;
@@ -67,12 +74,34 @@ export const Article = styled.li`
     }
   }
 
+  .excerpt {
+    font-size: 0.875rem;
+    margin-top: 1rem;
+    font-weight: normal;
+    color: ${(props) => props.theme.baseText};
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h5,
+    p {
+      font-size: inherit;
+      font-weight: inherit;
+      color: inherit;
+    }
+  }
+
   p {
     margin-top: 1.25rem;
 
     span {
-      /* overflow-wrap: break-word; */
+      /* word-break: break-all; */
       word-wrap: break-word;
     }
+  }
+
+  &:hover {
+    border-color: ${(props) => props.theme.baseLabel};
   }
 `;

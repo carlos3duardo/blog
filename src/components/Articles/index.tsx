@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { TruncateLines } from 'react-truncate-lines';
+import sanitizeHtml from 'sanitize-html';
+import slugify from 'react-slugify';
 import { format } from 'timeago.js';
-
 import {
   Article,
   ArticlesContainer,
@@ -9,11 +9,15 @@ import {
   FilterContainer,
 } from './styles';
 import { api } from '../../lib/axios';
+import ChopLines from 'chop-lines';
+import { marked } from 'marked';
+import { NavLink } from 'react-router-dom';
 
 interface ArticleProps {
   id: number;
   number: number;
   title: string;
+  slug: string;
   body: string;
   publishedAt: string;
 }
@@ -31,7 +35,7 @@ export function Articles() {
   const [amount, setAmount] = useState(0);
 
   const fetchArticles = useCallback(async () => {
-    const repository = 'kataras/iris';
+    const repository = import.meta.env.VITE_GITHUB_REPOSITORY;
 
     const response = await api.get('/search/issues', {
       params: {
@@ -41,12 +45,15 @@ export function Articles() {
       },
     });
 
+    console.log(response.data);
+
     setArticles(
       response.data.items.map((item: IssueProps) => {
         return {
           id: item.id,
           number: item.number,
           title: item.title,
+          slug: slugify(item.title),
           body: item.body,
           publishedAt: item.created_at,
         };
@@ -60,7 +67,6 @@ export function Articles() {
     fetchArticles();
   }, [fetchArticles]);
 
-  console.log(articles);
   return (
     <ArticlesContainer>
       <FilterContainer>
@@ -78,21 +84,34 @@ export function Articles() {
       </FilterContainer>
 
       <ArticlesList>
-        {articles.map((article) => (
-          <Article key={article.id}>
-            <header>
-              <h3>{article.title}</h3>
-              <span>{format(new Date(article.publishedAt), 'pt_BR')}</span>
-            </header>
-            {article.body && (
-              <p>
-                <TruncateLines lines={5} ellipsis="...">
-                  {article.body}
-                </TruncateLines>
-              </p>
-            )}
-          </Article>
-        ))}
+        {articles.map((article) => {
+          const html = marked.parse(article.body);
+
+          const sanitizedText = sanitizeHtml(html, {
+            allowedTags: ['b', 'h1', 'h2', 'h3'],
+            disallowedTagsMode: 'discard',
+          });
+
+          return (
+            <Article key={article.id}>
+              <NavLink to={`article/${article.id}/${article.slug}`}>
+                <header>
+                  <h3>{article.title}</h3>
+                  <span>{format(new Date(article.slug), 'pt_BR')}</span>
+                </header>
+                {article.body && (
+                  <div className="excerpt">
+                    <ChopLines lines={4} lineHeight={24}>
+                      <div
+                        dangerouslySetInnerHTML={{ __html: sanitizedText }}
+                      ></div>
+                    </ChopLines>
+                  </div>
+                )}
+              </NavLink>
+            </Article>
+          );
+        })}
       </ArticlesList>
     </ArticlesContainer>
   );
