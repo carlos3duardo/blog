@@ -35,11 +35,12 @@ export function Articles() {
   const [amount, setAmount] = useState(0);
 
   const fetchArticles = useCallback(async () => {
+    const username = import.meta.env.VITE_GITHUB_USERNAME;
     const repository = import.meta.env.VITE_GITHUB_REPOSITORY;
 
     const response = await api.get('/search/issues', {
       params: {
-        q: `repo:${repository} type:issue state:open`,
+        q: `repo:${username}/${repository} type:issue state:open`,
         page: 1,
         per_page: 10,
       },

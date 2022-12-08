@@ -32,10 +32,11 @@ export function Article() {
   const [formattedText, setFormattedText] = useState('');
 
   const fetchArticle = useCallback(async () => {
+    const username = import.meta.env.VITE_GITHUB_USERNAME;
     const repository = import.meta.env.VITE_GITHUB_REPOSITORY;
 
     const response = await api.get(
-      `/repos/${repository}/issues/${issueNumber}`,
+      `/repos/${username}/${repository}/issues/${issueNumber}`,
     );
 
     setArticle({
