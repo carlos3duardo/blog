@@ -45,8 +45,6 @@ export function Articles() {
       },
     });
 
-    console.log(response.data);
-
     setArticles(
       response.data.items.map((item: IssueProps) => {
         return {
@@ -94,7 +92,7 @@ export function Articles() {
 
           return (
             <Article key={article.id}>
-              <NavLink to={`article/${article.id}/${article.slug}`}>
+              <NavLink to={`article/${article.number}/${article.slug}`}>
                 <header>
                   <h3>{article.title}</h3>
                   <span>{format(new Date(article.slug), 'pt_BR')}</span>
