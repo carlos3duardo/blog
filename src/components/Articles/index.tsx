@@ -2,16 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 import sanitizeHtml from 'sanitize-html';
 import slugify from 'react-slugify';
 import { format } from 'timeago.js';
-import {
-  Article,
-  ArticlesContainer,
-  ArticlesList,
-  FilterContainer,
-} from './styles';
+import { Article, ArticlesContainer, ArticlesList } from './styles';
 import { api } from '../../lib/axios';
 import ChopLines from 'chop-lines';
 import { marked } from 'marked';
 import { NavLink } from 'react-router-dom';
+import { SearchInput } from '../../pages/Home/components/SearchInput';
+import { timeAgo } from '../../utils/timeAgo';
 
 interface ArticleProps {
   id: number;
@@ -34,13 +31,13 @@ export function Articles() {
   const [articles, setArticles] = useState<ArticleProps[]>([]);
   const [amount, setAmount] = useState(0);
 
-  const fetchArticles = useCallback(async () => {
+  const getArticles = useCallback(async (query: string = '') => {
     const username = import.meta.env.VITE_GITHUB_USERNAME;
     const repository = import.meta.env.VITE_GITHUB_REPOSITORY;
 
     const response = await api.get('/search/issues', {
       params: {
-        q: `repo:${username}/${repository} type:issue state:open`,
+        q: `${query} repo:${username}/${repository} type:issue state:open`,
         page: 1,
         per_page: 10,
       },
@@ -63,25 +60,12 @@ export function Articles() {
   }, []);
 
   useEffect(() => {
-    fetchArticles();
-  }, [fetchArticles]);
+    getArticles();
+  }, [getArticles]);
 
   return (
     <ArticlesContainer>
-      <FilterContainer>
-        <div>
-          <h3>Publicações</h3>
-          <span>
-            {amount === 0
-              ? 'Nenhuma publicação encontrada'
-              : amount === 1
-              ? '1 publicação'
-              : `${amount} publicações`}
-          </span>
-        </div>
-        <input type="text" placeholder="Buscar publicações" />
-      </FilterContainer>
-
+      <SearchInput articlesCount={amount} getArticles={getArticles} />
       <ArticlesList>
         {articles.map((article) => {
           const html = marked.parse(article.body);
@@ -96,7 +80,7 @@ export function Articles() {
               <NavLink to={`article/${article.number}/${article.slug}`}>
                 <header>
                   <h3>{article.title}</h3>
-                  <span>{format(new Date(article.slug), 'pt_BR')}</span>
+                  <span>{timeAgo(article.publishedAt)}</span>
                 </header>
                 {article.body && (
                   <div className="excerpt">
